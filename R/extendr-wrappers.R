@@ -21,5 +21,14 @@ rust_subset_genes <- function(expr_genes, db_genes) .Call(wrap__rust_subset_gene
 #' @export
 rust_wilcoxon_filter <- function(counts, labels, gene_names, pval_threshold) .Call(wrap__rust_wilcoxon_filter, counts, labels, gene_names, pval_threshold)
 
+#' Match overexpressed genes against CellChatDB ligand-receptor pairs.
+#' @param overexpressed Character vector of overexpressed gene names.
+#' @param lr_ligands Character vector of ligands from CellChatDB.
+#' @param lr_receptors Character vector of receptors from CellChatDB.
+#' @param lr_names Character vector of interaction names from CellChatDB.
+#' @return Character vector of matched interaction names.
+#' @export
+rust_match_lr_pairs <- function(overexpressed, lr_ligands, lr_receptors, lr_names) .Call(wrap__rust_match_lr_pairs, overexpressed, lr_ligands, lr_receptors, lr_names)
+
 
 # nolint end

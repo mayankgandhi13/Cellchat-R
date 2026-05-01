@@ -40,24 +40,20 @@ fn rust_wilcoxon_filter(
     let ngenes = counts.nrows();
     let ncells = counts.ncols();
 
-    // get unique cell types
     let cell_types: Vec<String> = {
         let mut seen = HashSet::new();
         labels.iter().filter(|l| seen.insert(*l)).cloned().collect()
     };
 
-    // for each gene, test if it is overexpressed in any cell type
     let data: Vec<f64> = counts.data().to_vec();
 
-    let overexpressed: Vec<String> = (0..ngenes)
+    (0..ngenes)
         .into_par_iter()
         .filter_map(|gene_idx| {
-            // extract expression values for this gene across all cells
             let gene_expr: Vec<f64> = (0..ncells)
                 .map(|cell_idx| data[gene_idx + cell_idx * ngenes])
                 .collect();
 
-            // test against each cell type
             for ct in &cell_types {
                 let group: Vec<f64> = labels.iter().zip(gene_expr.iter())
                     .filter(|(l, _)| *l == ct)
@@ -73,33 +69,52 @@ fn rust_wilcoxon_filter(
                     continue;
                 }
 
-                let pval = wilcoxon_pval(&group, &other);
-                if pval < pval_threshold {
+                if wilcoxon_pval(&group, &other) < pval_threshold {
                     return Some(gene_names[gene_idx].clone());
                 }
             }
             None
         })
-        .collect();
-
-    overexpressed
+        .collect()
 }
 
-// Wilcoxon rank-sum test — returns approximate p-value using normal approximation
+/// Match overexpressed genes against CellChatDB ligand-receptor pairs.
+/// @param overexpressed Character vector of overexpressed gene names.
+/// @param lr_ligands Character vector of ligands from CellChatDB.
+/// @param lr_receptors Character vector of receptors from CellChatDB.
+/// @param lr_names Character vector of interaction names from CellChatDB.
+/// @return Character vector of matched interaction names.
+/// @export
+#[extendr]
+fn rust_match_lr_pairs(
+    overexpressed: Vec<String>,
+    lr_ligands: Vec<String>,
+    lr_receptors: Vec<String>,
+    lr_names: Vec<String>,
+) -> Vec<String> {
+    let oe_set: HashSet<String> = overexpressed.into_iter().collect();
+
+    lr_ligands.iter()
+        .zip(lr_receptors.iter())
+        .zip(lr_names.iter())
+        .filter(|((lig, rec), _)| {
+            oe_set.contains(*lig) || oe_set.contains(*rec)
+        })
+        .map(|((_, _), name)| name.clone())
+        .collect()
+}
+
 fn wilcoxon_pval(x: &[f64], y: &[f64]) -> f64 {
     let n1 = x.len() as f64;
     let n2 = y.len() as f64;
 
-    // combine and rank
     let mut combined: Vec<(f64, usize)> = x.iter().map(|&v| (v, 0))
         .chain(y.iter().map(|&v| (v, 1)))
-        .enumerate()
-        .map(|(i, (v, g))| (v, g))
+        .map(|(v, g)| (v, g))
         .collect();
 
     combined.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
-    // sum of ranks for group x (1-indexed)
     let w: f64 = combined.iter().enumerate()
         .filter(|(_, (_, g))| *g == 0)
         .map(|(rank, _)| rank as f64 + 1.0)
@@ -109,16 +124,12 @@ fn wilcoxon_pval(x: &[f64], y: &[f64]) -> f64 {
     let mean_u = n1 * n2 / 2.0;
     let std_u = ((n1 * n2 * (n1 + n2 + 1.0)) / 12.0).sqrt();
 
-    if std_u == 0.0 {
-        return 1.0;
-    }
+    if std_u == 0.0 { return 1.0; }
 
     let z = (u - mean_u) / std_u;
-    // two-tailed p-value using normal approximation
     2.0 * (1.0 - normal_cdf(z.abs()))
 }
 
-// Standard normal CDF approximation
 fn normal_cdf(x: f64) -> f64 {
     0.5 * (1.0 + erf(x / std::f64::consts::SQRT_2))
 }
@@ -139,4 +150,5 @@ extendr_module! {
     fn hello_world;
     fn rust_subset_genes;
     fn rust_wilcoxon_filter;
+    fn rust_match_lr_pairs;
 }
