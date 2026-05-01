@@ -2,4 +2,6 @@
 
 export(hello_world)
 export(rust_subset_genes)
+export(rust_wilcoxon_filter)
+importFrom(methods,is)
 useDynLib(cellchatr, .registration = TRUE)
