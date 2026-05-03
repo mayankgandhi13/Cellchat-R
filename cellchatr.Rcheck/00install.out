@@ -1,0 +1,78 @@
+* installing *source* package ‘cellchatr’ ...
+** using staged installation
+Using cargo 1.95.0 (f2d3ce0bd 2026-03-21)
+Using rustc 1.95.0 (59807616e 2026-04-14)
+Building for CRAN.
+Writing `src/Makevars`.
+`tools/config.R` has finished.
+** libs
+using C compiler: ‘Apple clang version 15.0.0 (clang-1500.3.9.4)’
+using SDK: ‘MacOSX14.4.sdk’
+clang -arch arm64 -I"/Library/Frameworks/R.framework/Resources/include" -DNDEBUG   -I/opt/R/arm64/include    -fPIC  -falign-functions=64 -Wall -g -O2  -c entrypoint.c -o entrypoint.o
+if [ -f ./rust/vendor.tar.xz ]; then \
+		tar xf rust/vendor.tar.xz && \
+		mkdir -p /Users/mayankgandhi/Downloads/Projects/RUST/cellchatr/cellchatr.Rcheck/00_pkg_src/cellchatr/src/.cargo && \
+		cp rust/vendor-config.toml /Users/mayankgandhi/Downloads/Projects/RUST/cellchatr/cellchatr.Rcheck/00_pkg_src/cellchatr/src/.cargo/config.toml; \
+	fi
+export CARGO_HOME=/Users/mayankgandhi/Downloads/Projects/RUST/cellchatr/cellchatr.Rcheck/00_pkg_src/cellchatr/src/.cargo && \
+	export PATH="/Users/mayankgandhi/.virtualenvs/r-reticulate/bin:/Users/mayankgandhi/.virtualenvs/r-reticulate/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/X11/bin:/Users/mayankgandhi/.virtualenvs/r-reticulate/bin:/Users/mayankgandhi/miniforge3/bin:/Users/mayankgandhi/miniforge3/condabin:/Users/mayankgandhi/.sdkman/candidates/java/current/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.12/bin:/Users/mayankgandhi/.cargo/bin:/Applications/quarto/bin:/Library/TeX/texbin:/usr/texbin:/Applications/RStudio.app/Contents/Resources/app/quarto/bin:/Applications/RStudio.app/Contents/Resources/app/bin/postback:/Users/mayankgandhi/.cargo/bin" && \
+	RUSTFLAGS=" --print=native-static-libs" cargo build  --lib --release --manifest-path=./rust/Cargo.toml --target-dir ./rust/target 
+[1m[92m    Updating[0m crates.io index
+[1m[92m Downloading[0m crates ...
+[1m[92m  Downloaded[0m crossbeam-epoch v0.9.18
+[1m[92m  Downloaded[0m readonly v0.2.13
+[1m[92m  Downloaded[0m quote v1.0.45
+[1m[92m  Downloaded[0m extendr-macros v0.9.0
+[1m[92m  Downloaded[0m unicode-ident v1.0.24
+[1m[92m  Downloaded[0m rayon-core v1.13.0
+[1m[92m  Downloaded[0m rayon v1.12.0
+[1m[92m  Downloaded[0m proc-macro2 v1.0.106
+[1m[92m  Downloaded[0m once_cell v1.21.4
+[1m[92m  Downloaded[0m crossbeam-utils v0.8.21
+[1m[92m  Downloaded[0m extendr-api v0.9.0
+[1m[92m  Downloaded[0m extendr-ffi v0.9.0
+[1m[92m  Downloaded[0m either v1.15.0
+[1m[92m  Downloaded[0m crossbeam-deque v0.8.6
+[1m[92m  Downloaded[0m paste v1.0.15
+[1m[92m  Downloaded[0m lazy_static v1.5.0
+[1m[92m  Downloaded[0m syn v2.0.117
+[1m[92m   Compiling[0m proc-macro2 v1.0.106
+[1m[92m   Compiling[0m quote v1.0.45
+[1m[92m   Compiling[0m crossbeam-utils v0.8.21
+[1m[92m   Compiling[0m unicode-ident v1.0.24
+[1m[92m   Compiling[0m extendr-ffi v0.9.0
+[1m[92m   Compiling[0m paste v1.0.15
+[1m[92m   Compiling[0m rayon-core v1.13.0
+[1m[92m   Compiling[0m lazy_static v1.5.0
+[1m[92m   Compiling[0m extendr-api v0.9.0
+[1m[92m   Compiling[0m once_cell v1.21.4
+[1m[92m   Compiling[0m either v1.15.0
+[1m[92m   Compiling[0m syn v2.0.117
+[1m[92m   Compiling[0m crossbeam-epoch v0.9.18
+[1m[92m   Compiling[0m crossbeam-deque v0.8.6
+[1m[92m   Compiling[0m rayon v1.12.0
+[1m[92m   Compiling[0m extendr-macros v0.9.0
+[1m[92m   Compiling[0m readonly v0.2.13
+[1m[92m   Compiling[0m cellchatr v0.1.0 (/Users/mayankgandhi/Downloads/Projects/RUST/cellchatr/cellchatr.Rcheck/00_pkg_src/cellchatr/src/rust)
+[1m[92mnote[0m[1m: link against the following native artifacts when linking against this static library. The order and any duplication can be significant on some platforms[0m
+
+[1m[92mnote[0m[1m: native-static-libs: -lR -lSystem -lc -lm[0m
+
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 9.35s
+# Always clean up CARGOTMP
+rm -Rf /Users/mayankgandhi/Downloads/Projects/RUST/cellchatr/cellchatr.Rcheck/00_pkg_src/cellchatr/src/.cargo;
+clang -arch arm64 -dynamiclib -Wl,-headerpad_max_install_names -undefined dynamic_lookup -L/Library/Frameworks/R.framework/Resources/lib -L/opt/R/arm64/lib -o cellchatr.so entrypoint.o -L./rust/target/release -lcellchatr -F/Library/Frameworks/R.framework/.. -framework R -Wl,-framework -Wl,CoreFoundation
+rm -Rf /Users/mayankgandhi/Downloads/Projects/RUST/cellchatr/cellchatr.Rcheck/00_pkg_src/cellchatr/src/.cargo /Users/mayankgandhi/Downloads/Projects/RUST/cellchatr/cellchatr.Rcheck/00_pkg_src/cellchatr/src/vendor ./rust/target
+installing to /Users/mayankgandhi/Downloads/Projects/RUST/cellchatr/cellchatr.Rcheck/00LOCK-cellchatr/00new/cellchatr/libs
+** R
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** checking absolute paths in shared objects and dynamic libraries
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (cellchatr)

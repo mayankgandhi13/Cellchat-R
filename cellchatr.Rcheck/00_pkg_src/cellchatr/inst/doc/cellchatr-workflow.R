@@ -1,0 +1,112 @@
+## ----include = FALSE----------------------------------------------------------
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+## ----setup--------------------------------------------------------------------
+library(cellchatr)
+library(CellChat)
+
+## ----load-db------------------------------------------------------------------
+db <- CellChatDB.human
+
+cat("Total L-R interactions:", nrow(db$interaction), "\n")
+cat("Signaling pathways:", length(unique(db$interaction$pathway_name)), "\n")
+
+head(db$interaction[, c("interaction_name", "ligand", "receptor", "pathway_name")])
+
+## ----subset-genes-------------------------------------------------------------
+# Simulate expression matrix gene names
+expr_genes <- unique(c(
+  paste0("GENE", 1:14000),
+  db$interaction$ligand,
+  db$interaction$receptor
+))
+cat("Total genes in expression matrix:", length(expr_genes), "\n")
+
+# All genes in CellChatDB
+db_genes <- unique(c(db$interaction$ligand, db$interaction$receptor))
+cat("Genes in CellChatDB:", length(db_genes), "\n")
+
+# Filter — O(n + m) with HashSet
+subset_genes <- rust_subset_genes(expr_genes, db_genes)
+cat("Genes present in both:", length(subset_genes), "\n")
+head(subset_genes)
+
+## ----wilcoxon-filter----------------------------------------------------------
+set.seed(42)
+
+# Simulate expression matrix — subset genes x 300 cells
+n_genes <- length(subset_genes)
+n_cells <- 300
+labels  <- c(rep("Fibroblast", 100), rep("Macrophage", 100), 
+             rep("Endothelial", 100))
+
+counts <- matrix(rnorm(n_genes * n_cells, mean = 1, sd = 1), nrow = n_genes)
+
+# Boost first 20 genes in Fibroblasts — simulating real DE genes
+counts[1:20, labels == "Fibroblast"] <- 
+  counts[1:20, labels == "Fibroblast"] + 5
+
+# Run parallel Wilcoxon
+overexpressed <- rust_wilcoxon_filter(counts, labels, subset_genes, 0.05)
+
+cat("Overexpressed genes found:", length(overexpressed), "\n")
+head(overexpressed)
+
+## ----match-lr-----------------------------------------------------------------
+interactions <- rust_match_lr_pairs(
+  overexpressed = overexpressed,
+  lr_ligands    = db$interaction$ligand,
+  lr_receptors  = db$interaction$receptor,
+  lr_names      = db$interaction$interaction_name
+)
+
+cat("Matched L-R interactions:", length(interactions), "\n")
+
+# Pathway breakdown
+matched <- db$interaction[
+  db$interaction$interaction_name %in% interactions,
+  c("interaction_name", "ligand", "receptor", "pathway_name")
+]
+
+sort(table(matched$pathway_name), decreasing = TRUE)[1:10]
+
+## ----benchmark, message=FALSE-------------------------------------------------
+library(microbenchmark)
+
+set.seed(42)
+n_genes <- 2000
+n_cells <- 200
+labels_bm  <- c(rep("A", 100), rep("B", 100))
+gene_names <- paste0("GENE", 1:n_genes)
+counts_bm  <- matrix(rnorm(n_genes * n_cells), nrow = n_genes)
+
+r_wilcoxon <- function(counts, labels, gene_names, pval_threshold) {
+  cell_types    <- unique(labels)
+  overexpressed <- c()
+  for (g in 1:nrow(counts)) {
+    for (ct in cell_types) {
+      group <- counts[g, labels == ct]
+      other <- counts[g, labels != ct]
+      p <- wilcox.test(group, other, alternative = "greater")$p.value
+      if (p < pval_threshold) {
+        overexpressed <- c(overexpressed, gene_names[g])
+        break
+      }
+    }
+  }
+  overexpressed
+}
+
+bm <- microbenchmark(
+  rust   = rust_wilcoxon_filter(counts_bm, labels_bm, gene_names, 0.05),
+  base_r = r_wilcoxon(counts_bm, labels_bm, gene_names, 0.05),
+  times  = 3
+)
+print(bm)
+
+## ----session-info-------------------------------------------------------------
+sessionInfo()
+
