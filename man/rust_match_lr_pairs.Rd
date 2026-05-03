@@ -21,3 +21,11 @@ Character vector of matched interaction names.
 \description{
 Match overexpressed genes against CellChatDB ligand-receptor pairs.
 }
+\section{Complexity}{
+\itemize{
+\item Time:  O(m + r) where m = overexpressed genes, r = LR pairs
+\item Space: O(m) for HashSet
+\item R equivalent (\%\%in\%\% twice): O(m x r)
+}
+}
+

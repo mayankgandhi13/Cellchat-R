@@ -17,3 +17,11 @@ Character vector of genes present in both inputs.
 \description{
 Filter expression matrix genes to only those present in CellChatDB.
 }
+\section{Complexity}{
+\itemize{
+\item Time:  O(n + m) where n = db_genes, m = expr_genes
+\item Space: O(n) for HashSet
+\item R equivalent (\%\%in\%\%): O(n x m)
+}
+}
+

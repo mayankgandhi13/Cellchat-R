@@ -21,3 +21,12 @@ Character vector of over-expressed gene names.
 \description{
 Identify over-expressed genes per cell type using Wilcoxon rank-sum test.
 }
+\section{Complexity}{
+\itemize{
+\item Time:  O((g/p) x k x c log c) where g = genes, p = CPU cores,
+k = cell types, c = cells
+\item Space: O(c) per gene
+\item R equivalent: O(g x k x c log c) — serial, no parallelism
+}
+}
+

@@ -10,6 +10,12 @@ fn hello_world() -> &'static str {
 }
 
 /// Filter expression matrix genes to only those present in CellChatDB.
+///
+/// # Complexity
+/// - Time:  O(n + m) where n = db_genes, m = expr_genes
+/// - Space: O(n) for HashSet
+/// - R equivalent (%%in%%): O(n x m)
+///
 /// @param expr_genes Character vector of gene names from expression matrix.
 /// @param db_genes Character vector of gene names from CellChatDB.
 /// @return Character vector of genes present in both inputs.
@@ -24,6 +30,13 @@ fn rust_subset_genes(expr_genes: Vec<String>, db_genes: Vec<String>) -> Vec<Stri
 }
 
 /// Identify over-expressed genes per cell type using Wilcoxon rank-sum test.
+///
+/// # Complexity
+/// - Time:  O((g/p) x k x c log c) where g = genes, p = CPU cores,
+///          k = cell types, c = cells
+/// - Space: O(c) per gene
+/// - R equivalent: O(g x k x c log c) — serial, no parallelism
+///
 /// @param counts NumericMatrix of gene expression (genes x cells).
 /// @param labels Character vector of cell type labels, one per cell.
 /// @param gene_names Character vector of gene names.
@@ -79,6 +92,12 @@ fn rust_wilcoxon_filter(
 }
 
 /// Match overexpressed genes against CellChatDB ligand-receptor pairs.
+///
+/// # Complexity
+/// - Time:  O(m + r) where m = overexpressed genes, r = LR pairs
+/// - Space: O(m) for HashSet
+/// - R equivalent (%%in%% twice): O(m x r)
+///
 /// @param overexpressed Character vector of overexpressed gene names.
 /// @param lr_ligands Character vector of ligands from CellChatDB.
 /// @param lr_receptors Character vector of receptors from CellChatDB.
@@ -104,11 +123,12 @@ fn rust_match_lr_pairs(
         .collect()
 }
 
+// Wilcoxon rank-sum test with tie correction
+// Complexity: O(c log c) where c = total cells (dominated by sort)
 fn wilcoxon_pval(x: &[f64], y: &[f64]) -> f64 {
     let n1 = x.len() as f64;
     let n2 = y.len() as f64;
 
-    // combine with group labels
     let mut combined: Vec<(f64, usize)> = x.iter().map(|&v| (v, 0))
         .chain(y.iter().map(|&v| (v, 1)))
         .collect();
@@ -117,16 +137,14 @@ fn wilcoxon_pval(x: &[f64], y: &[f64]) -> f64 {
 
     let n = combined.len();
 
-    // assign average ranks for ties
+    // assign average ranks for ties — O(c)
     let mut ranks = vec![0.0f64; n];
     let mut i = 0;
     while i < n {
         let mut j = i;
-        // find all tied values
         while j < n && combined[j].0 == combined[i].0 {
             j += 1;
         }
-        // average rank for tied group (1-indexed)
         let avg_rank = (i + j + 1) as f64 / 2.0;
         for k in i..j {
             ranks[k] = avg_rank;
@@ -143,7 +161,7 @@ fn wilcoxon_pval(x: &[f64], y: &[f64]) -> f64 {
     let u = w - n1 * (n1 + 1.0) / 2.0;
     let mean_u = n1 * n2 / 2.0;
 
-    // tie correction factor
+    // tie correction factor — O(c)
     let mut tie_correction = 0.0f64;
     let mut i = 0;
     while i < n {
