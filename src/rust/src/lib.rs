@@ -108,21 +108,59 @@ fn wilcoxon_pval(x: &[f64], y: &[f64]) -> f64 {
     let n1 = x.len() as f64;
     let n2 = y.len() as f64;
 
+    // combine with group labels
     let mut combined: Vec<(f64, usize)> = x.iter().map(|&v| (v, 0))
         .chain(y.iter().map(|&v| (v, 1)))
-        .map(|(v, g)| (v, g))
         .collect();
 
     combined.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
+    let n = combined.len();
+
+    // assign average ranks for ties
+    let mut ranks = vec![0.0f64; n];
+    let mut i = 0;
+    while i < n {
+        let mut j = i;
+        // find all tied values
+        while j < n && combined[j].0 == combined[i].0 {
+            j += 1;
+        }
+        // average rank for tied group (1-indexed)
+        let avg_rank = (i + j + 1) as f64 / 2.0;
+        for k in i..j {
+            ranks[k] = avg_rank;
+        }
+        i = j;
+    }
+
+    // sum of ranks for group x
     let w: f64 = combined.iter().enumerate()
         .filter(|(_, (_, g))| *g == 0)
-        .map(|(rank, _)| rank as f64 + 1.0)
+        .map(|(idx, _)| ranks[idx])
         .sum();
 
     let u = w - n1 * (n1 + 1.0) / 2.0;
     let mean_u = n1 * n2 / 2.0;
-    let std_u = ((n1 * n2 * (n1 + n2 + 1.0)) / 12.0).sqrt();
+
+    // tie correction factor
+    let mut tie_correction = 0.0f64;
+    let mut i = 0;
+    while i < n {
+        let mut j = i;
+        while j < n && combined[j].0 == combined[i].0 {
+            j += 1;
+        }
+        let t = (j - i) as f64;
+        if t > 1.0 {
+            tie_correction += t * t * t - t;
+        }
+        i = j;
+    }
+
+    let std_u = ((n1 * n2 / 12.0)
+        * ((n1 + n2 + 1.0) - tie_correction / ((n1 + n2) * (n1 + n2 - 1.0))))
+        .sqrt();
 
     if std_u == 0.0 { return 1.0; }
 
