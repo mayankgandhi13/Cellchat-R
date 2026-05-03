@@ -12,9 +12,16 @@ exposes them to R as drop-in replacements.
 
 ## Installation
 
+### Via r-universe (recommended — no Rust required)
 ```r
-# install.packages("devtools")
-devtools::install_github("mayankgandhi13/Cellchat-R", build_vignettes = TRUE)
+install.packages("cellchatr", 
+  repos = "https://mayankgandhi13.r-universe.dev")
+```
+
+### Via GitHub (requires Rust >= 1.65)
+```r
+devtools::install_github("mayankgandhi13/cellchatr", 
+  build_vignettes = TRUE)
 ```
 
 ## Quick Start
@@ -119,9 +126,13 @@ devtools::test()
 16 edge case tests covering empty inputs, boundary thresholds, 
 duplicate genes, and correct biological outputs.
 
+## Bioconductor
+
+Submitted to Bioconductor — Issue [#4283](https://github.com/Bioconductor/Contributions/issues/4283)
+
 ## Requirements
 
-- R >= 4.0
+- R >= 4.4.0
 - Rust >= 1.65 (for building from source)
 - CellChat >= 2.0 (for real database access)
 
