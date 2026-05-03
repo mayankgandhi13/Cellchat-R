@@ -1,6 +1,6 @@
 Package: cellchatr
 Title: Fast CellChat Database Querying Backed by Rust
-Version: 0.1.0
+Version: 0.99.0
 Authors@R: 
     person("Mayank", "Gandhi", , "135.mayankgandhi@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0000-3448-9308"))
