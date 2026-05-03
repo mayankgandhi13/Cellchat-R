@@ -29,3 +29,11 @@ Match overexpressed genes against CellChatDB ligand-receptor pairs.
 }
 }
 
+\examples{
+rust_match_lr_pairs(
+  c("TGFB1", "VEGFA"),
+  c("TGFB1", "MYC", "VEGFA"),
+  c("TGFBR1", "MYCBP", "FLT1"),
+  c("TGFB1_TGFBR1", "MYC_MYCBP", "VEGFA_FLT1")
+)
+}

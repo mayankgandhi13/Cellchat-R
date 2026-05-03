@@ -30,3 +30,9 @@ k = cell types, c = cells
 }
 }
 
+\examples{
+counts <- matrix(c(rep(10, 50), rep(0, 50), rep(1, 100)),
+  nrow = 2, byrow = TRUE)
+labels <- c(rep("A", 50), rep("B", 50))
+rust_wilcoxon_filter(counts, labels, c("TGFB1", "GAPDH"), 0.05)
+}

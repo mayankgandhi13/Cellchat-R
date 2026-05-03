@@ -3,6 +3,9 @@ use std::collections::HashSet;
 use rayon::prelude::*;
 
 /// Return string `"Hello world!"` to R.
+/// @return A character string "Hello world!"
+/// @examples
+/// hello_world()
 /// @export
 #[extendr]
 fn hello_world() -> &'static str {
@@ -19,6 +22,11 @@ fn hello_world() -> &'static str {
 /// @param expr_genes Character vector of gene names from expression matrix.
 /// @param db_genes Character vector of gene names from CellChatDB.
 /// @return Character vector of genes present in both inputs.
+/// @examples
+/// rust_subset_genes(
+///   c("TGFB1", "VEGFA", "GAPDH"),
+///   c("TGFB1", "VEGFA", "MYC")
+/// )
 /// @export
 #[extendr]
 fn rust_subset_genes(expr_genes: Vec<String>, db_genes: Vec<String>) -> Vec<String> {
@@ -42,6 +50,11 @@ fn rust_subset_genes(expr_genes: Vec<String>, db_genes: Vec<String>) -> Vec<Stri
 /// @param gene_names Character vector of gene names.
 /// @param pval_threshold P-value cutoff for significance.
 /// @return Character vector of over-expressed gene names.
+/// @examples
+/// counts <- matrix(c(rep(10, 50), rep(0, 50), rep(1, 100)),
+///   nrow = 2, byrow = TRUE)
+/// labels <- c(rep("A", 50), rep("B", 50))
+/// rust_wilcoxon_filter(counts, labels, c("TGFB1", "GAPDH"), 0.05)
 /// @export
 #[extendr]
 fn rust_wilcoxon_filter(
@@ -103,6 +116,13 @@ fn rust_wilcoxon_filter(
 /// @param lr_receptors Character vector of receptors from CellChatDB.
 /// @param lr_names Character vector of interaction names from CellChatDB.
 /// @return Character vector of matched interaction names.
+/// @examples
+/// rust_match_lr_pairs(
+///   c("TGFB1", "VEGFA"),
+///   c("TGFB1", "MYC", "VEGFA"),
+///   c("TGFBR1", "MYCBP", "FLT1"),
+///   c("TGFB1_TGFBR1", "MYC_MYCBP", "VEGFA_FLT1")
+/// )
 /// @export
 #[extendr]
 fn rust_match_lr_pairs(

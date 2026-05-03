@@ -15,8 +15,12 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Config/rextendr/version: 0.4.2
 SystemRequirements: Cargo (Rust's package manager), rustc >= 1.65.0, xz
+URL: https://github.com/mayankgandhi13/Cellchat-R
+BugReports: https://github.com/mayankgandhi13/Cellchat-R/issues
+biocViews: SingleCell, GeneExpression, Transcriptomics, StatisticalMethod,
+    Software
 Depends: 
-    R (>= 4.2)
+    R (>= 4.4.0)
 Imports:
     methods
 Suggests: 

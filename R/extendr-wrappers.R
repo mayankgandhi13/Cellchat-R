@@ -2,6 +2,9 @@
 
 # nolint start
 
+#' @return A character string "Hello world!"
+#' @examples
+#' hello_world()
 #' @export
 hello_world <- function() .Call(wrap__hello_world)
 
@@ -15,6 +18,11 @@ hello_world <- function() .Call(wrap__hello_world)
 #' @param expr_genes Character vector of gene names from expression matrix.
 #' @param db_genes Character vector of gene names from CellChatDB.
 #' @return Character vector of genes present in both inputs.
+#' @examples
+#' rust_subset_genes(
+#'   c("TGFB1", "VEGFA", "GAPDH"),
+#'   c("TGFB1", "VEGFA", "MYC")
+#' )
 #' @export
 rust_subset_genes <- function(expr_genes, db_genes) .Call(wrap__rust_subset_genes, expr_genes, db_genes)
 
@@ -31,6 +39,11 @@ rust_subset_genes <- function(expr_genes, db_genes) .Call(wrap__rust_subset_gene
 #' @param gene_names Character vector of gene names.
 #' @param pval_threshold P-value cutoff for significance.
 #' @return Character vector of over-expressed gene names.
+#' @examples
+#' counts <- matrix(c(rep(10, 50), rep(0, 50), rep(1, 100)),
+#'   nrow = 2, byrow = TRUE)
+#' labels <- c(rep("A", 50), rep("B", 50))
+#' rust_wilcoxon_filter(counts, labels, c("TGFB1", "GAPDH"), 0.05)
 #' @export
 rust_wilcoxon_filter <- function(counts, labels, gene_names, pval_threshold) .Call(wrap__rust_wilcoxon_filter, counts, labels, gene_names, pval_threshold)
 
@@ -46,6 +59,13 @@ rust_wilcoxon_filter <- function(counts, labels, gene_names, pval_threshold) .Ca
 #' @param lr_receptors Character vector of receptors from CellChatDB.
 #' @param lr_names Character vector of interaction names from CellChatDB.
 #' @return Character vector of matched interaction names.
+#' @examples
+#' rust_match_lr_pairs(
+#'   c("TGFB1", "VEGFA"),
+#'   c("TGFB1", "MYC", "VEGFA"),
+#'   c("TGFBR1", "MYCBP", "FLT1"),
+#'   c("TGFB1_TGFBR1", "MYC_MYCBP", "VEGFA_FLT1")
+#' )
 #' @export
 rust_match_lr_pairs <- function(overexpressed, lr_ligands, lr_receptors, lr_names) .Call(wrap__rust_match_lr_pairs, overexpressed, lr_ligands, lr_receptors, lr_names)
 

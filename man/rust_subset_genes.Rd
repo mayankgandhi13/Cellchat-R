@@ -25,3 +25,9 @@ Filter expression matrix genes to only those present in CellChatDB.
 }
 }
 
+\examples{
+rust_subset_genes(
+  c("TGFB1", "VEGFA", "GAPDH"),
+  c("TGFB1", "VEGFA", "MYC")
+)
+}

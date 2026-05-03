@@ -6,6 +6,12 @@
 \usage{
 hello_world()
 }
+\value{
+A character string "Hello world!"
+}
 \description{
 Return string \code{"Hello world!"} to R.
+}
+\examples{
+hello_world()
 }
