@@ -12,6 +12,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+cellchat_available <- requireNamespace("CellChat", quietly = TRUE)
 ```
 
 ## Overview
@@ -32,12 +33,16 @@ The three functions replace:
 
 ```{r setup}
 library(cellchatr)
-library(CellChat)
+if (requireNamespace("CellChat", quietly = TRUE)) {
+  library(CellChat)
+} else {
+  message("CellChat not installed. Install with: devtools::install_github('jinworks/CellChat')")
+}
 ```
 
 ## Step 1 — Load CellChatDB
 
-```{r load-db}
+```{r load-db, eval=cellchat_available}
 db <- CellChatDB.human
 
 cat("Total L-R interactions:", nrow(db$interaction), "\n")
@@ -51,8 +56,7 @@ head(db$interaction[, c("interaction_name", "ligand", "receptor", "pathway_name"
 In a real experiment you would use your scRNA-seq gene names here.
 We simulate 15,000 genes with real CellChatDB genes embedded.
 
-```{r subset-genes}
-# Simulate expression matrix gene names
+```{r subset-genes, eval=cellchat_available}
 expr_genes <- unique(c(
   paste0("GENE", 1:14000),
   db$interaction$ligand,
@@ -60,11 +64,9 @@ expr_genes <- unique(c(
 ))
 cat("Total genes in expression matrix:", length(expr_genes), "\n")
 
-# All genes in CellChatDB
 db_genes <- unique(c(db$interaction$ligand, db$interaction$receptor))
 cat("Genes in CellChatDB:", length(db_genes), "\n")
 
-# Filter — O(n + m) with HashSet
 subset_genes <- rust_subset_genes(expr_genes, db_genes)
 cat("Genes present in both:", length(subset_genes), "\n")
 head(subset_genes)
@@ -75,22 +77,18 @@ head(subset_genes)
 Parallel Wilcoxon rank-sum test across all genes and cell types.
 Uses Rayon for multi-core parallelism — 183x faster than base R.
 
-```{r wilcoxon-filter}
+```{r wilcoxon-filter, eval=cellchat_available}
 set.seed(42)
 
-# Simulate expression matrix — subset genes x 300 cells
 n_genes <- length(subset_genes)
 n_cells <- 300
 labels  <- c(rep("Fibroblast", 100), rep("Macrophage", 100), 
              rep("Endothelial", 100))
 
 counts <- matrix(rnorm(n_genes * n_cells, mean = 1, sd = 1), nrow = n_genes)
-
-# Boost first 20 genes in Fibroblasts — simulating real DE genes
 counts[1:20, labels == "Fibroblast"] <- 
   counts[1:20, labels == "Fibroblast"] + 5
 
-# Run parallel Wilcoxon
 overexpressed <- rust_wilcoxon_filter(counts, labels, subset_genes, 0.05)
 
 cat("Overexpressed genes found:", length(overexpressed), "\n")
@@ -101,7 +99,7 @@ head(overexpressed)
 
 HashSet-based matching — O(m + r) vs R's O(m × r).
 
-```{r match-lr}
+```{r match-lr, eval=cellchat_available}
 interactions <- rust_match_lr_pairs(
   overexpressed = overexpressed,
   lr_ligands    = db$interaction$ligand,
@@ -111,7 +109,6 @@ interactions <- rust_match_lr_pairs(
 
 cat("Matched L-R interactions:", length(interactions), "\n")
 
-# Pathway breakdown
 matched <- db$interaction[
   db$interaction$interaction_name %in% interactions,
   c("interaction_name", "ligand", "receptor", "pathway_name")
@@ -126,9 +123,9 @@ sort(table(matched$pathway_name), decreasing = TRUE)[1:10]
 library(microbenchmark)
 
 set.seed(42)
-n_genes <- 2000
-n_cells <- 200
-labels_bm  <- c(rep("A", 100), rep("B", 100))
+n_genes   <- 2000
+n_cells   <- 200
+labels_bm <- c(rep("A", 100), rep("B", 100))
 gene_names <- paste0("GENE", 1:n_genes)
 counts_bm  <- matrix(rnorm(n_genes * n_cells), nrow = n_genes)
 
